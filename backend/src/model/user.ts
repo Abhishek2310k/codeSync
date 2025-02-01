@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
             }
         }
     ],
-    subsciptions: [
+    subscriptions: [
         String
     ],
     subscribers: [String]

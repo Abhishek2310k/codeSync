@@ -17,18 +17,20 @@ route.put('/login',async (req:Request, res:Response): Promise<any> => {
         if (password !== storedUser.password) return res.json({message:"password incorrect"}); 
         const token = jwt.sign({username:username},server_secret);
 
-        res.cookie("token",token);
+        res.cookie("token",token,{httpOnly:true,sameSite:"lax"});
         return res.json({message:"loggin success"});
     } catch(err) {
         return res.json({message:"error while loggin in"});
     }
 });
 
-route.post('/post',async (req:Request,res:Response):Promise<any> => {
+route.post('/signup',async (req:Request,res:Response):Promise<any> => {
     try {
 
         const {username,password} = req.body;
-        const user = new User({username:username,password:password,subsciptions:[username],subscribers:[username]});
+        const currUser = User.findOne({username:username});
+        if (!currUser) return res.json({message:"user already there"});
+        const user = new User({username:username,password:password,subscriptions:[username],subscribers:[username]});
         await user.save();
 
         return res.json({message:"sigup successful"});

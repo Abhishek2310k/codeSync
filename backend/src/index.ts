@@ -13,7 +13,7 @@ mongoose.connect("mongodb://localhost:27017/chat-room",{bufferCommands:false})
 
 app.use(bodyParser.json());
 app.use(cors({
-    origin:"*",
+    origin:"http://localhost:5173",
     credentials:true
 }));
 app.use('/auth',authRoute);

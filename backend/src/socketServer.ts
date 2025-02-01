@@ -16,26 +16,31 @@ export function startSocketServer(server:any) {
     const wss = new WebSocket.Server({server});
 
 
-wss.on('connection',async (ws,req:Request)=>{
+wss.on('connection',async (ws,req:any)=>{
     //@ts-ignore
-    const username = req.headers.username;
-    // console.log(username)
-    if (username) {
+    const username = req.headers['sec-websocket-protocol'];
+
+    if (username !== undefined) {
         socketData.set(username,ws);
-        if(!userData.has(username)) {
 
-            const {subscribers,subsciptions} : any = 
-            await User.findOne({username:username});
+        const {subscribers,subscriptions,messages} : any = 
+        await User.findOne({username:username});
 
-            userData.set(username,subsciptions);
-            roomData.set(username,subscribers);
-            // the list of users in the room are now set
-        }
-        ws.send(socketReturnParser("success","socket connection created"));
+        userData.set(username,subscriptions);
+        roomData.set(username,subscribers);
+
+            
+        ws.send(socketReturnParser(
+            "pendingMessages", 
+            "success",
+            {messages:messages,subscriptions:subscriptions}
+        ));
     }
 
-    else ws.send("please send the username");
+    else ws.send(socketReturnParser("error", "please send the username"));
+
     ws.on('message',async (data:any)=>{
+        // console.log(data);
         const msg:any = socketDataParser(data);
          if (msg.type === "joinGroup") {
             if (msg.data) {
@@ -43,11 +48,12 @@ wss.on('connection',async (ws,req:Request)=>{
                 // need to handle room join for the user given
                 const tempData = userData.get(username);
                 if (tempData) {
+                    // if the user is already a member we just send the mesaages stored for him in the databse
                     if (tempData.length <= 4) {
                         // in this case the user can join the room
                         userData.get(username)?.push(room);
                         roomData.get(room)?.push(username);
-                        await User.findOneAndUpdate({username:username},{$push:{subsciptions:room}});
+                        await User.findOneAndUpdate({username:username},{$push:{subscriptions:room}});
                         await User.findOneAndUpdate({username:room},{$push:{subscribers:username}});
                         
                         ws.send(socketReturnParser("success",`subscribed to ${room}`));
@@ -118,13 +124,13 @@ wss.on('connection',async (ws,req:Request)=>{
                 }
             }
         }
-        logOutPut(userData,roomData);
+        // logOutPut(userData,roomData);
     })
 
     ws.on('close',()=>{
         socketData.delete(username);
         userData.delete(username);
     })
-    logOutPut(userData,roomData);
+    // logOutPut(userData,roomData);
 })
 }

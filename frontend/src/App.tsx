@@ -1,8 +1,23 @@
-import './App.css';
+import './App.css'
+import {BrowserRouter,Routes,Route} from "react-router";
+import Signup from './auth/signup';
+import Login from './auth/login';
+import Layout from './Layout/Layout';
+import ChatRoom from './chat/ChatRoom/ChatRoom';
 
 function App() {
+
+
   return (
-    <h1>Hi This is abhishek</h1>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Signup/>}/>
+          <Route path='/login'element={<Login/>}/>
+          <Route path='/chat' element = {<ChatRoom/>}/>
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 
